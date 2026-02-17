@@ -2,7 +2,7 @@
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/infra-insight
+**URL**: https://infra-insight-output.lovable.app
 
 ## How can I edit this code?
 
