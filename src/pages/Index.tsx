@@ -5,52 +5,83 @@ import { BandwidthChart } from "@/components/BandwidthChart";
 import { DeviceTable } from "@/components/DeviceTable";
 import { AlertsFeed } from "@/components/AlertsFeed";
 import { Sidebar } from "@/components/Sidebar";
+import { RoleBanner } from "@/components/RoleBanner";
+import { useAuth } from "@/hooks/useAuth";
 import { kpiData } from "@/lib/mockData";
 
-const Index = () => (
-  <div className="flex min-h-screen bg-background">
-    <Sidebar />
-    <main className="flex-1 p-6 overflow-y-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-bold text-foreground">Infrastructure Overview</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Real-time monitoring across all systems</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="status-dot status-online" />
-          <span className="text-xs font-mono text-muted-foreground">Live</span>
-          <span className="text-xs text-muted-foreground ml-2">
-            <Activity className="w-3 h-3 inline mr-1" />
-            Last sync: just now
-          </span>
-        </div>
-      </div>
+const Index = () => {
+  const { role } = useAuth();
+  const isAdmin = role === "admin";
+  const isStaff = role === "it_staff";
+  const isManager = role === "manager";
+  const isClient = role === "client";
 
-      {/* KPIs */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-        <KpiCard title="Devices Online" value={kpiData.devicesOnline} subtitle="of 145 total" icon={Monitor} variant="success" />
-        <KpiCard title="Devices Offline" value={kpiData.devicesOffline} icon={Wifi} variant="destructive" />
-        <KpiCard title="Network Health" value={`${kpiData.networkHealth}%`} icon={Activity} variant="success" />
-        <KpiCard title="Active Alerts" value={kpiData.activeAlerts} subtitle="2 critical" icon={Bell} variant="warning" />
-        <KpiCard title="Avg Response" value={`${kpiData.avgResponseTime}ms`} icon={Clock} variant="default" />
-      </div>
+  const showFullMetrics = isAdmin || isStaff;
+  const showAlerts = isAdmin || isStaff;
+  const showDevices = isAdmin || isStaff;
 
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <MetricsChart />
-        <BandwidthChart />
-      </div>
-
-      {/* Table + Alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2">
-          <DeviceTable />
+  return (
+    <div className="flex min-h-screen bg-background">
+      <Sidebar />
+      <main className="flex-1 p-6 overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-xl font-bold text-foreground">Infrastructure Overview</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Real-time monitoring across all systems</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="status-dot status-online" />
+            <span className="text-xs font-mono text-muted-foreground">Live</span>
+          </div>
         </div>
-        <AlertsFeed />
-      </div>
-    </main>
-  </div>
-);
+
+        <RoleBanner />
+
+        {/* KPIs — visible to all roles */}
+        <div className={`grid grid-cols-1 sm:grid-cols-2 ${showFullMetrics ? "lg:grid-cols-5" : "lg:grid-cols-4"} gap-4 mb-6`}>
+          <KpiCard title="Devices Online" value={kpiData.devicesOnline} subtitle="of 145 total" icon={Monitor} variant="success" />
+          <KpiCard title="Devices Offline" value={kpiData.devicesOffline} icon={Wifi} variant="destructive" />
+          <KpiCard title="Network Health" value={`${kpiData.networkHealth}%`} icon={Activity} variant="success" />
+          {(showFullMetrics || isManager) && (
+            <KpiCard title="Active Alerts" value={kpiData.activeAlerts} subtitle="2 critical" icon={Bell} variant="warning" />
+          )}
+          {showFullMetrics && (
+            <KpiCard title="Avg Response" value={`${kpiData.avgResponseTime}ms`} icon={Clock} variant="default" />
+          )}
+        </div>
+
+        {/* Charts — admin, it_staff, manager */}
+        {(showFullMetrics || isManager) && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            <MetricsChart />
+            <BandwidthChart />
+          </div>
+        )}
+
+        {/* Client gets a simplified summary */}
+        {isClient && (
+          <div className="glass-card p-8 text-center mb-6">
+            <Activity className="w-10 h-10 text-primary mx-auto mb-3" />
+            <h2 className="text-lg font-semibold text-foreground mb-1">Your Infrastructure is Healthy</h2>
+            <p className="text-sm text-muted-foreground">97.8% network health — 142 of 145 devices online</p>
+          </div>
+        )}
+
+        {/* Table + Alerts — admin & it_staff only */}
+        {(showDevices || showAlerts) && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {showDevices && (
+              <div className="lg:col-span-2">
+                <DeviceTable />
+              </div>
+            )}
+            {showAlerts && <AlertsFeed />}
+          </div>
+        )}
+      </main>
+    </div>
+  );
+};
 
 export default Index;
