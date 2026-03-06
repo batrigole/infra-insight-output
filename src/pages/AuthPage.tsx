@@ -32,13 +32,12 @@ const AuthPage = () => {
         password,
         options: {
           data: { display_name: displayName },
-          emailRedirectTo: window.location.origin,
         },
       });
       if (error) {
         setError(error.message);
       } else {
-        setMessage("Check your email to confirm your account.");
+        navigate("/");
       }
     }
     setLoading(false);
