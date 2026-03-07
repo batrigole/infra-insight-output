@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      monitored_devices: {
+        Row: {
+          added_by: string | null
+          cpu_usage: number | null
+          created_at: string
+          disk_usage: number | null
+          id: string
+          ip_address: string
+          last_seen: string | null
+          location: string | null
+          mac_address: string | null
+          memory_usage: number | null
+          name: string
+          notes: string | null
+          status: string
+          type: string
+          updated_at: string
+          uptime: string | null
+        }
+        Insert: {
+          added_by?: string | null
+          cpu_usage?: number | null
+          created_at?: string
+          disk_usage?: number | null
+          id?: string
+          ip_address: string
+          last_seen?: string | null
+          location?: string | null
+          mac_address?: string | null
+          memory_usage?: number | null
+          name: string
+          notes?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          uptime?: string | null
+        }
+        Update: {
+          added_by?: string | null
+          cpu_usage?: number | null
+          created_at?: string
+          disk_usage?: number | null
+          id?: string
+          ip_address?: string
+          last_seen?: string | null
+          location?: string | null
+          mac_address?: string | null
+          memory_usage?: number | null
+          name?: string
+          notes?: string | null
+          status?: string
+          type?: string
+          updated_at?: string
+          uptime?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
