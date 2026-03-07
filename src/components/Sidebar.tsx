@@ -1,22 +1,23 @@
 import { LayoutDashboard, Server, Bell, Settings, Map, BarChart3, Shield, Users, Activity, LogOut } from "lucide-react";
-import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const allNavItems = [
-  { icon: LayoutDashboard, label: "Dashboard", roles: ["admin", "it_staff", "manager", "client"] },
-  { icon: Server, label: "Devices", roles: ["admin", "it_staff"] },
-  { icon: Activity, label: "Metrics", roles: ["admin", "it_staff", "manager"] },
-  { icon: Bell, label: "Alerts", badge: 7, roles: ["admin", "it_staff"] },
-  { icon: Map, label: "Topology", roles: ["admin", "it_staff"] },
-  { icon: BarChart3, label: "Reports", roles: ["admin", "it_staff", "manager"] },
-  { icon: Users, label: "Users", roles: ["admin"] },
-  { icon: Shield, label: "Security", roles: ["admin"] },
-  { icon: Settings, label: "Settings", roles: ["admin"] },
+  { icon: LayoutDashboard, label: "Dashboard", path: "/", roles: ["admin", "it_staff", "manager", "client"] },
+  { icon: Server, label: "Devices", path: "/devices", roles: ["admin", "it_staff"] },
+  { icon: Activity, label: "Metrics", path: "/metrics", roles: ["admin", "it_staff", "manager"] },
+  { icon: Bell, label: "Alerts", path: "/alerts", badge: 7, roles: ["admin", "it_staff"] },
+  { icon: Map, label: "Topology", path: "/topology", roles: ["admin", "it_staff"] },
+  { icon: BarChart3, label: "Reports", path: "/reports", roles: ["admin", "it_staff", "manager"] },
+  { icon: Users, label: "Users", path: "/users", roles: ["admin"] },
+  { icon: Shield, label: "Security", path: "/security", roles: ["admin"] },
+  { icon: Settings, label: "Settings", path: "/settings", roles: ["admin"] },
 ];
 
 export const Sidebar = () => {
-  const [active, setActive] = useState("Dashboard");
   const { user, role, signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const navItems = allNavItems.filter((item) => !role || item.roles.includes(role));
 
@@ -29,25 +30,28 @@ export const Sidebar = () => {
         <span className="hidden lg:block text-sm font-bold text-foreground tracking-tight">Infra-Insight</span>
       </div>
       <nav className="flex-1 p-2 space-y-1 overflow-y-auto">
-        {navItems.map(({ icon: Icon, label, badge }) => (
-          <button
-            key={label}
-            onClick={() => setActive(label)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-              active === label
-                ? "bg-sidebar-accent text-sidebar-primary"
-                : "text-sidebar-foreground hover:bg-sidebar-accent/50"
-            }`}
-          >
-            <Icon className="w-4 h-4 flex-shrink-0" />
-            <span className="hidden lg:block">{label}</span>
-            {badge && (
-              <span className="hidden lg:flex ml-auto bg-destructive text-destructive-foreground text-[10px] font-bold w-5 h-5 rounded-full items-center justify-center">
-                {badge}
-              </span>
-            )}
-          </button>
-        ))}
+        {navItems.map(({ icon: Icon, label, path, badge }) => {
+          const isActive = location.pathname === path;
+          return (
+            <button
+              key={label}
+              onClick={() => navigate(path)}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                isActive
+                  ? "bg-sidebar-accent text-sidebar-primary"
+                  : "text-sidebar-foreground hover:bg-sidebar-accent/50"
+              }`}
+            >
+              <Icon className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden lg:block">{label}</span>
+              {badge && (
+                <span className="hidden lg:flex ml-auto bg-destructive text-destructive-foreground text-[10px] font-bold w-5 h-5 rounded-full items-center justify-center">
+                  {badge}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </nav>
       <div className="p-3 border-t border-sidebar-border space-y-2">
         <div className="flex items-center gap-2 px-1">
