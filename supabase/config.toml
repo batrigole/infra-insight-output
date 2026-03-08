@@ -1,1 +1,4 @@
 project_id = "xbkzzuqhossperrqnamn"
+
+[functions.monitor-devices]
+verify_jwt = false
