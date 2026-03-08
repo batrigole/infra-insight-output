@@ -1,0 +1,13 @@
+{
+  "name": "infrainsight-agent",
+  "version": "1.0.0",
+  "description": "Local network monitoring agent for InfraInsight",
+  "main": "monitor.js",
+  "scripts": {
+    "start": "node monitor.js"
+  },
+  "dependencies": {
+    "ping": "^0.4.4",
+    "systeminformation": "^5.22.0"
+  }
+}
