@@ -24,7 +24,7 @@ export interface MonitoredDevice {
 export const useDevices = () => {
   return useQuery({
     queryKey: ["monitored_devices"],
-    refetchInterval: 15000,
+    refetchInterval: 10000,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("monitored_devices")
