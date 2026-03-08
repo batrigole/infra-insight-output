@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useEffect, useRef } from "react";
+import { useLocalMonitor } from "./useLocalMonitor";
 
 export interface MonitoredDevice {
   id: string;
@@ -22,27 +22,8 @@ export interface MonitoredDevice {
   updated_at: string;
 }
 
-const triggerMonitoringScan = async () => {
-  try {
-    await supabase.functions.invoke("monitor-devices");
-  } catch (e) {
-    console.error("Monitoring scan failed:", e);
-  }
-};
-
 export const useDevices = () => {
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Trigger the edge function every 10 seconds
-  useEffect(() => {
-    triggerMonitoringScan();
-    intervalRef.current = setInterval(triggerMonitoringScan, 10000);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
-  return useQuery({
+  const query = useQuery({
     queryKey: ["monitored_devices"],
     refetchInterval: 10000,
     queryFn: async () => {
@@ -54,6 +35,11 @@ export const useDevices = () => {
       return data as MonitoredDevice[];
     },
   });
+
+  // Run local browser-based pings against devices on the same network
+  useLocalMonitor(query.data);
+
+  return query;
 };
 
 export const useAddDevice = () => {
