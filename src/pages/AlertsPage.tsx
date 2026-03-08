@@ -1,5 +1,13 @@
 import { Bell, AlertTriangle, AlertCircle, Info } from "lucide-react";
-import { alerts } from "@/lib/mockData";
+import { useDevices } from "@/hooks/useDevices";
+import { useMemo } from "react";
+
+interface DerivedAlert {
+  id: string;
+  severity: "critical" | "warning" | "info";
+  message: string;
+  device: string;
+}
 
 const severityConfig: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
   critical: { icon: AlertCircle, color: "text-destructive", bg: "bg-destructive/10" },
@@ -8,6 +16,38 @@ const severityConfig: Record<string, { icon: React.ElementType; color: string; b
 };
 
 const AlertsPage = () => {
+  const { data: devices } = useDevices();
+
+  const alerts = useMemo<DerivedAlert[]>(() => {
+    if (!devices) return [];
+    const result: DerivedAlert[] = [];
+    devices.forEach((d) => {
+      if (d.status === "offline") {
+        result.push({ id: `${d.id}-offline`, severity: "critical", message: `${d.name} is unreachable`, device: d.name });
+      }
+      if (d.cpu_usage > 85) {
+        result.push({ id: `${d.id}-cpu`, severity: "critical", message: `${d.name} CPU usage at ${d.cpu_usage}%`, device: d.name });
+      } else if (d.cpu_usage > 70) {
+        result.push({ id: `${d.id}-cpu`, severity: "warning", message: `${d.name} CPU usage at ${d.cpu_usage}%`, device: d.name });
+      }
+      if (d.memory_usage > 85) {
+        result.push({ id: `${d.id}-mem`, severity: "critical", message: `${d.name} memory usage at ${d.memory_usage}%`, device: d.name });
+      } else if (d.memory_usage > 70) {
+        result.push({ id: `${d.id}-mem`, severity: "warning", message: `${d.name} memory usage at ${d.memory_usage}%`, device: d.name });
+      }
+      if (d.disk_usage > 85) {
+        result.push({ id: `${d.id}-disk`, severity: "warning", message: `${d.name} disk usage at ${d.disk_usage}%`, device: d.name });
+      }
+      if (d.status === "online") {
+        result.push({ id: `${d.id}-ok`, severity: "info", message: `${d.name} operating normally`, device: d.name });
+      }
+    });
+    return result.sort((a, b) => {
+      const order = { critical: 0, warning: 1, info: 2 };
+      return order[a.severity] - order[b.severity];
+    });
+  }, [devices]);
+
   const critical = alerts.filter((a) => a.severity === "critical").length;
   const warnings = alerts.filter((a) => a.severity === "warning").length;
 
@@ -27,6 +67,9 @@ const AlertsPage = () => {
       </div>
 
       <div className="space-y-2">
+        {alerts.length === 0 && (
+          <div className="glass-card p-8 text-center text-muted-foreground text-sm">No alerts — all systems normal</div>
+        )}
         {alerts.map((alert) => {
           const config = severityConfig[alert.severity] || severityConfig.info;
           const Icon = config.icon;
@@ -37,10 +80,7 @@ const AlertsPage = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm text-foreground">{alert.message}</p>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="text-[10px] font-mono text-muted-foreground">{alert.device}</span>
-                  <span className="text-[10px] text-muted-foreground">{alert.time}</span>
-                </div>
+                <span className="text-[10px] font-mono text-muted-foreground">{alert.device}</span>
               </div>
               <span className={`text-[10px] font-bold uppercase ${config.color}`}>{alert.severity}</span>
             </div>

@@ -1,6 +1,6 @@
 import { BarChart3, TrendingUp, TrendingDown, Clock } from "lucide-react";
 import { useDevices } from "@/hooks/useDevices";
-import { alerts } from "@/lib/mockData";
+import { useMemo } from "react";
 
 const ReportsPage = () => {
   const { data: devices } = useDevices();
@@ -8,7 +8,19 @@ const ReportsPage = () => {
   const total = devices?.length ?? 0;
   const uptime = total ? Math.round((online / total) * 100) : 0;
 
-  const criticalAlerts = alerts.filter((a) => a.severity === "critical").length;
+  const alertCount = useMemo(() => {
+    if (!devices) return { critical: 0, total: 0 };
+    let critical = 0, totalAlerts = 0;
+    devices.forEach((d) => {
+      if (d.status === "offline") { critical++; totalAlerts++; }
+      if (d.cpu_usage > 85) { critical++; totalAlerts++; }
+      else if (d.cpu_usage > 70) { totalAlerts++; }
+      if (d.memory_usage > 85) { critical++; totalAlerts++; }
+      else if (d.memory_usage > 70) { totalAlerts++; }
+      if (d.disk_usage > 85) { totalAlerts++; }
+    });
+    return { critical, total: totalAlerts };
+  }, [devices]);
 
   return (
     <div>
@@ -30,12 +42,12 @@ const ReportsPage = () => {
         </div>
         <div className="glass-card p-5 text-center">
           <TrendingDown className="w-6 h-6 text-destructive mx-auto mb-2" />
-          <p className="text-2xl font-bold text-destructive font-mono">{criticalAlerts}</p>
+          <p className="text-2xl font-bold text-destructive font-mono">{alertCount.critical}</p>
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Critical Alerts</p>
         </div>
         <div className="glass-card p-5 text-center">
           <Clock className="w-6 h-6 text-warning mx-auto mb-2" />
-          <p className="text-2xl font-bold text-foreground font-mono">{alerts.length}</p>
+          <p className="text-2xl font-bold text-foreground font-mono">{alertCount.total}</p>
           <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Alerts</p>
         </div>
       </div>
