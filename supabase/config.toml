@@ -1,1 +1,4 @@
 project_id = "xbkzzuqhossperrqnamn"
+
+[functions.report-device-status]
+verify_jwt = false
