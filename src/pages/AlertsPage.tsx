@@ -23,23 +23,16 @@ const AlertsPage = () => {
     const result: DerivedAlert[] = [];
     devices.forEach((d) => {
       if (d.status === "offline") {
-        result.push({ id: `${d.id}-offline`, severity: "critical", message: `${d.name} is unreachable`, device: d.name });
+        result.push({ id: `${d.id}-offline`, severity: "critical", message: `${d.name} est inaccessible`, device: d.name });
       }
-      if (d.cpu_usage > 85) {
-        result.push({ id: `${d.id}-cpu`, severity: "critical", message: `${d.name} CPU usage at ${d.cpu_usage}%`, device: d.name });
-      } else if (d.cpu_usage > 70) {
-        result.push({ id: `${d.id}-cpu`, severity: "warning", message: `${d.name} CPU usage at ${d.cpu_usage}%`, device: d.name });
+      if (d.latency > 200 && d.status === "online") {
+        result.push({ id: `${d.id}-latency`, severity: "warning", message: `${d.name} latence élevée: ${d.latency}ms`, device: d.name });
       }
-      if (d.memory_usage > 85) {
-        result.push({ id: `${d.id}-mem`, severity: "critical", message: `${d.name} memory usage at ${d.memory_usage}%`, device: d.name });
-      } else if (d.memory_usage > 70) {
-        result.push({ id: `${d.id}-mem`, severity: "warning", message: `${d.name} memory usage at ${d.memory_usage}%`, device: d.name });
+      if (d.saturation) {
+        result.push({ id: `${d.id}-sat`, severity: "warning", message: `${d.name} réseau saturé (bande passante: ${d.bandwidth} Mbps)`, device: d.name });
       }
-      if (d.disk_usage > 85) {
-        result.push({ id: `${d.id}-disk`, severity: "warning", message: `${d.name} disk usage at ${d.disk_usage}%`, device: d.name });
-      }
-      if (d.status === "online") {
-        result.push({ id: `${d.id}-ok`, severity: "info", message: `${d.name} operating normally`, device: d.name });
+      if (d.status === "online" && d.latency <= 200 && !d.saturation) {
+        result.push({ id: `${d.id}-ok`, severity: "info", message: `${d.name} fonctionne normalement`, device: d.name });
       }
     });
     return result.sort((a, b) => {
@@ -55,20 +48,20 @@ const AlertsPage = () => {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-bold text-foreground">Alerts</h1>
+          <h1 className="text-xl font-bold text-foreground">Alertes</h1>
           <p className="text-xs text-muted-foreground mt-0.5">
-            {critical} critical · {warnings} warnings · {alerts.length} total
+            {critical} critiques · {warnings} avertissements · {alerts.length} total
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Bell className="w-4 h-4 text-destructive" />
-          <span className="text-xs font-mono text-muted-foreground">{alerts.length} active</span>
+          <span className="text-xs font-mono text-muted-foreground">{alerts.length} actives</span>
         </div>
       </div>
 
       <div className="space-y-2">
         {alerts.length === 0 && (
-          <div className="glass-card p-8 text-center text-muted-foreground text-sm">No alerts — all systems normal</div>
+          <div className="glass-card p-8 text-center text-muted-foreground text-sm">Aucune alerte — tous les systèmes sont normaux</div>
         )}
         {alerts.map((alert) => {
           const config = severityConfig[alert.severity] || severityConfig.info;

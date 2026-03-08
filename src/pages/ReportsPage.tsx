@@ -13,11 +13,8 @@ const ReportsPage = () => {
     let critical = 0, totalAlerts = 0;
     devices.forEach((d) => {
       if (d.status === "offline") { critical++; totalAlerts++; }
-      if (d.cpu_usage > 85) { critical++; totalAlerts++; }
-      else if (d.cpu_usage > 70) { totalAlerts++; }
-      if (d.memory_usage > 85) { critical++; totalAlerts++; }
-      else if (d.memory_usage > 70) { totalAlerts++; }
-      if (d.disk_usage > 85) { totalAlerts++; }
+      if (d.latency > 200 && d.status === "online") { totalAlerts++; }
+      if (d.saturation) { totalAlerts++; }
     });
     return { critical, total: totalAlerts };
   }, [devices]);
@@ -25,60 +22,70 @@ const ReportsPage = () => {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-xl font-bold text-foreground">Reports</h1>
-        <p className="text-xs text-muted-foreground mt-0.5">Infrastructure performance summary</p>
+        <h1 className="text-xl font-bold text-foreground">Rapports</h1>
+        <p className="text-xs text-muted-foreground mt-0.5">Résumé de performance de l'infrastructure</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="glass-card p-5 text-center">
           <BarChart3 className="w-6 h-6 text-primary mx-auto mb-2" />
           <p className="text-2xl font-bold text-foreground font-mono">{total}</p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Devices</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total appareils</p>
         </div>
         <div className="glass-card p-5 text-center">
           <TrendingUp className="w-6 h-6 text-success mx-auto mb-2" />
           <p className="text-2xl font-bold text-success font-mono">{uptime}%</p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Uptime Rate</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Taux disponibilité</p>
         </div>
         <div className="glass-card p-5 text-center">
           <TrendingDown className="w-6 h-6 text-destructive mx-auto mb-2" />
           <p className="text-2xl font-bold text-destructive font-mono">{alertCount.critical}</p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Critical Alerts</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Alertes critiques</p>
         </div>
         <div className="glass-card p-5 text-center">
           <Clock className="w-6 h-6 text-warning mx-auto mb-2" />
           <p className="text-2xl font-bold text-foreground font-mono">{alertCount.total}</p>
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total Alerts</p>
+          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Total alertes</p>
         </div>
       </div>
 
       <div className="glass-card p-6">
-        <h2 className="text-sm font-semibold text-foreground mb-4">Device Status Breakdown</h2>
+        <h2 className="text-sm font-semibold text-foreground mb-4">État détaillé des appareils</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="text-xs uppercase tracking-wider text-muted-foreground border-b border-border/50">
-                <th className="text-left pb-3">Device</th>
+                <th className="text-left pb-3">Appareil</th>
                 <th className="text-left pb-3">Type</th>
                 <th className="text-left pb-3">IP</th>
-                <th className="text-left pb-3">Status</th>
-                <th className="text-left pb-3">CPU</th>
-                <th className="text-left pb-3">Memory</th>
+                <th className="text-left pb-3">État</th>
+                <th className="text-left pb-3">Latence</th>
+                <th className="text-left pb-3">Bande passante</th>
+                <th className="text-left pb-3">Saturation</th>
               </tr>
             </thead>
             <tbody>
               {devices?.map((d) => (
                 <tr key={d.id} className="border-b border-border/30">
                   <td className="py-2.5 font-medium text-foreground">{d.name}</td>
-                  <td className="py-2.5 capitalize text-muted-foreground">{d.type}</td>
+                  <td className="py-2.5 capitalize text-muted-foreground">{d.category}</td>
                   <td className="py-2.5 font-mono text-muted-foreground">{d.ip_address}</td>
                   <td className="py-2.5">
-                    <span className={`text-xs font-semibold ${d.status === "online" ? "text-success" : "text-destructive"}`}>
-                      {d.status}
+                    <span className={`text-xs font-bold ${d.status === "online" ? "text-success" : "text-destructive"}`}>
+                      {d.status === "online" ? "UP" : "DOWN"}
                     </span>
                   </td>
-                  <td className="py-2.5 font-mono text-muted-foreground">{d.cpu_usage}%</td>
-                  <td className="py-2.5 font-mono text-muted-foreground">{d.memory_usage}%</td>
+                  <td className="py-2.5 font-mono text-muted-foreground">
+                    {d.status === "online" ? `${d.latency}ms` : "—"}
+                  </td>
+                  <td className="py-2.5 font-mono text-muted-foreground">
+                    {d.status === "online" ? `${d.bandwidth} Mbps` : "—"}
+                  </td>
+                  <td className="py-2.5">
+                    <span className={`text-xs font-bold ${d.saturation ? "text-destructive" : "text-success"}`}>
+                      {d.saturation ? "Oui" : "Non"}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>

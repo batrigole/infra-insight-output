@@ -1,4 +1,4 @@
-import { Monitor, Wifi, Bell, Clock, Activity } from "lucide-react";
+import { Monitor, Wifi, Bell, Clock, Activity, Router, Globe } from "lucide-react";
 import { KpiCard } from "@/components/KpiCard";
 import { MetricsChart } from "@/components/MetricsChart";
 import { BandwidthChart } from "@/components/BandwidthChart";
@@ -26,21 +26,26 @@ const Index = () => {
   const offline = total - online;
   const healthPercent = total > 0 ? Math.round((online / total) * 100 * 10) / 10 : 0;
 
+  const routerCount = devices?.filter((d) => d.category === "router").length ?? 0;
+  const deviceCount = devices?.filter((d) => d.category === "device").length ?? 0;
+  const webCount = devices?.filter((d) => d.category === "webpage").length ?? 0;
+
   const onlineDevices = devices?.filter((d) => d.status === "online") ?? [];
-  const avgCpu = onlineDevices.length
-    ? Math.round(onlineDevices.reduce((a, d) => a + d.cpu_usage, 0) / onlineDevices.length)
+  const avgLatency = onlineDevices.length
+    ? Math.round(onlineDevices.reduce((a, d) => a + d.latency, 0) / onlineDevices.length)
     : 0;
 
-  // Derive alert count from device status
-  const alertCount = devices?.filter((d) => d.status === "offline" || d.cpu_usage > 70 || d.memory_usage > 70 || d.disk_usage > 85).length ?? 0;
-  const criticalCount = devices?.filter((d) => d.status === "offline" || d.cpu_usage > 85 || d.memory_usage > 85).length ?? 0;
+  const alertCount = devices?.filter((d) => d.status === "offline" || d.latency > 200).length ?? 0;
+  const criticalCount = devices?.filter((d) => d.status === "offline").length ?? 0;
 
   return (
     <>
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-xl font-bold text-foreground">Infrastructure Overview</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Real-time monitoring · refreshes every 15s</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Monitoring réseau · rafraîchissement toutes les 15s
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <span className="status-dot status-online" />
@@ -51,15 +56,40 @@ const Index = () => {
       <RoleBanner />
 
       <div className={`grid grid-cols-1 sm:grid-cols-2 ${showFullMetrics ? "lg:grid-cols-5" : "lg:grid-cols-4"} gap-4 mb-6`}>
-        <KpiCard title="Devices Online" value={online} subtitle={`of ${total} total`} icon={Monitor} variant="success" />
-        <KpiCard title="Devices Offline" value={offline} icon={Wifi} variant="destructive" />
-        <KpiCard title="Network Health" value={`${healthPercent}%`} icon={Activity} variant="success" />
+        <KpiCard title="En ligne" value={online} subtitle={`sur ${total} appareils`} icon={Monitor} variant="success" />
+        <KpiCard title="Hors ligne" value={offline} icon={Wifi} variant="destructive" />
+        <KpiCard title="Santé réseau" value={`${healthPercent}%`} icon={Activity} variant="success" />
         {(showFullMetrics || isManager) && (
-          <KpiCard title="Active Alerts" value={alertCount} subtitle={`${criticalCount} critical`} icon={Bell} variant="warning" />
+          <KpiCard title="Alertes" value={alertCount} subtitle={`${criticalCount} critiques`} icon={Bell} variant="warning" />
         )}
         {showFullMetrics && (
-          <KpiCard title="Avg CPU" value={`${avgCpu}%`} icon={Clock} variant="default" />
+          <KpiCard title="Latence moy." value={`${avgLatency}ms`} icon={Clock} variant="default" />
         )}
+      </div>
+
+      {/* Category summary */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="glass-card p-4 flex items-center gap-3">
+          <Router className="w-5 h-5 text-primary" />
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase">Routeurs</p>
+            <p className="text-lg font-bold font-mono text-foreground">{routerCount}</p>
+          </div>
+        </div>
+        <div className="glass-card p-4 flex items-center gap-3">
+          <Monitor className="w-5 h-5 text-chart-2" />
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase">Devices</p>
+            <p className="text-lg font-bold font-mono text-foreground">{deviceCount}</p>
+          </div>
+        </div>
+        <div className="glass-card p-4 flex items-center gap-3">
+          <Globe className="w-5 h-5 text-chart-4" />
+          <div>
+            <p className="text-[10px] text-muted-foreground uppercase">Pages Web</p>
+            <p className="text-lg font-bold font-mono text-foreground">{webCount}</p>
+          </div>
+        </div>
       </div>
 
       {(showFullMetrics || isManager) && (
@@ -72,8 +102,12 @@ const Index = () => {
       {isClient && (
         <div className="glass-card p-8 text-center mb-6">
           <Activity className="w-10 h-10 text-primary mx-auto mb-3" />
-          <h2 className="text-lg font-semibold text-foreground mb-1">Your Infrastructure is {healthPercent >= 90 ? "Healthy" : "Degraded"}</h2>
-          <p className="text-sm text-muted-foreground">{healthPercent}% network health — {online} of {total} devices online</p>
+          <h2 className="text-lg font-semibold text-foreground mb-1">
+            Votre infrastructure est {healthPercent >= 90 ? "en bonne santé" : "dégradée"}
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            {healthPercent}% santé réseau — {online} sur {total} appareils en ligne
+          </p>
         </div>
       )}
 
