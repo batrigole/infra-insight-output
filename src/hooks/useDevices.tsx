@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useLocalMonitor } from "./useLocalMonitor";
 
 export interface MonitoredDevice {
   id: string;
@@ -23,7 +22,7 @@ export interface MonitoredDevice {
 }
 
 export const useDevices = () => {
-  const query = useQuery({
+  return useQuery({
     queryKey: ["monitored_devices"],
     refetchInterval: 10000,
     queryFn: async () => {
@@ -35,11 +34,6 @@ export const useDevices = () => {
       return data as MonitoredDevice[];
     },
   });
-
-  // Run local browser-based pings against devices on the same network
-  useLocalMonitor(query.data);
-
-  return query;
 };
 
 export const useAddDevice = () => {
