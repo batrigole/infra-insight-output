@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useEffect, useRef } from "react";
 
 export interface MonitoredDevice {
   id: string;
@@ -22,26 +21,7 @@ export interface MonitoredDevice {
   updated_at: string;
 }
 
-const triggerMonitoringScan = async () => {
-  try {
-    await supabase.functions.invoke("monitor-devices");
-  } catch (e) {
-    console.error("Monitoring scan failed:", e);
-  }
-};
-
 export const useDevices = () => {
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  // Trigger the edge function every 10 seconds
-  useEffect(() => {
-    triggerMonitoringScan();
-    intervalRef.current = setInterval(triggerMonitoringScan, 10000);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, []);
-
   return useQuery({
     queryKey: ["monitored_devices"],
     refetchInterval: 10000,

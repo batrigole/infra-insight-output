@@ -16,97 +16,14 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Fetch all devices
-    const { data: devices, error: fetchError } = await supabase
+    // Simply return current device statuses - actual monitoring is done by the local agent
+    const { data: devices, error } = await supabase
       .from("monitored_devices")
-      .select("*");
+      .select("id, name, ip_address, status, last_seen, uptime, updated_at");
 
-    if (fetchError) throw fetchError;
-    if (!devices || devices.length === 0) {
-      return new Response(JSON.stringify({ message: "No devices to monitor" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (error) throw error;
 
-    const results = [];
-
-    for (const device of devices) {
-      let isOnline = false;
-
-      // Try HTTP(S) connection to check reachability
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 3000);
-
-        // Try common ports: 80 (HTTP), 443 (HTTPS), 8080
-        const ports = [80, 443, 8080];
-        for (const port of ports) {
-          try {
-            const protocol = port === 443 ? "https" : "http";
-            const resp = await fetch(`${protocol}://${device.ip_address}:${port}`, {
-              method: "HEAD",
-              signal: controller.signal,
-              // @ts-ignore - Deno supports this
-              redirect: "manual",
-            });
-            // Any response (even error pages) means the device is reachable
-            isOnline = true;
-            await resp.text(); // consume body
-            break;
-          } catch {
-            // This port didn't work, try next
-          }
-        }
-
-        clearTimeout(timeout);
-      } catch {
-        isOnline = false;
-      }
-
-      // Also try a raw TCP connection as fallback
-      if (!isOnline) {
-        try {
-          const conn = await Deno.connect({
-            hostname: device.ip_address,
-            port: 80,
-            transport: "tcp",
-          });
-          isOnline = true;
-          conn.close();
-        } catch {
-          // not reachable
-        }
-      }
-
-      const now = new Date().toISOString();
-      const uptimeHours = isOnline
-        ? Math.floor(
-            (Date.now() - new Date(device.created_at).getTime()) / 3600000
-          )
-        : 0;
-
-      const updateData: Record<string, unknown> = {
-        status: isOnline ? "online" : "offline",
-        last_seen: isOnline ? now : device.last_seen,
-        updated_at: now,
-        uptime: isOnline ? `${uptimeHours}h` : "—",
-      };
-
-      const { error: updateError } = await supabase
-        .from("monitored_devices")
-        .update(updateData)
-        .eq("id", device.id);
-
-      results.push({
-        id: device.id,
-        name: device.name,
-        ip: device.ip_address,
-        status: isOnline ? "online" : "offline",
-        error: updateError?.message || null,
-      });
-    }
-
-    return new Response(JSON.stringify({ results, timestamp: new Date().toISOString() }), {
+    return new Response(JSON.stringify({ devices, timestamp: new Date().toISOString() }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
