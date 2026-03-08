@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import DashboardLayout from "@/components/DashboardLayout";
 import Index from "./pages/Index";
 import DevicesPage from "./pages/DevicesPage";
+import DeviceDetailPage from "./pages/DeviceDetailPage";
 import MetricsPage from "./pages/MetricsPage";
 import AlertsPage from "./pages/AlertsPage";
 import TopologyPage from "./pages/TopologyPage";
@@ -34,6 +35,7 @@ const App = () => (
             <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
               <Route index element={<Index />} />
               <Route path="devices" element={<DevicesPage />} />
+              <Route path="devices/:id" element={<DeviceDetailPage />} />
               <Route path="metrics" element={<MetricsPage />} />
               <Route path="alerts" element={<AlertsPage />} />
               <Route path="topology" element={<TopologyPage />} />
