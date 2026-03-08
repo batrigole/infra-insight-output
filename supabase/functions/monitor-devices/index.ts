@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
       // Try HTTP(S) connection to check reachability
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5000);
+        const timeout = setTimeout(() => controller.abort(), 3000);
 
         // Try common ports: 80 (HTTP), 443 (HTTPS), 8080
         const ports = [80, 443, 8080];
