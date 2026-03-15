@@ -24,16 +24,23 @@ export const AlertsFeed = () => {
     const result: DerivedAlert[] = [];
     devices.forEach((d) => {
       if (d.status === "offline") {
-        result.push({ id: `${d.id}-offline`, severity: "critical", message: `${d.name} est inaccessible`, device: d.name, time: "now" });
+        result.push({ id: `${d.id}-offline`, severity: "critical", message: `${d.name} is unreachable`, device: d.name, time: "now" });
       }
-      if (d.latency > 200 && d.status === "online") {
-        result.push({ id: `${d.id}-latency`, severity: "warning", message: `${d.name} latence élevée: ${d.latency}ms`, device: d.name, time: "now" });
+      if (d.cpu_usage > 85) {
+        result.push({ id: `${d.id}-cpu`, severity: "critical", message: `${d.name} CPU at ${d.cpu_usage}%`, device: d.name, time: "now" });
+      } else if (d.cpu_usage > 70) {
+        result.push({ id: `${d.id}-cpu`, severity: "warning", message: `${d.name} CPU at ${d.cpu_usage}%`, device: d.name, time: "now" });
       }
-      if (d.saturation) {
-        result.push({ id: `${d.id}-sat`, severity: "warning", message: `${d.name} réseau saturé`, device: d.name, time: "now" });
+      if (d.memory_usage > 85) {
+        result.push({ id: `${d.id}-mem`, severity: "critical", message: `${d.name} memory at ${d.memory_usage}%`, device: d.name, time: "now" });
+      } else if (d.memory_usage > 70) {
+        result.push({ id: `${d.id}-mem`, severity: "warning", message: `${d.name} memory at ${d.memory_usage}%`, device: d.name, time: "now" });
       }
-      if (d.status === "online" && d.latency <= 200 && !d.saturation) {
-        result.push({ id: `${d.id}-ok`, severity: "info", message: `${d.name} fonctionne normalement`, device: d.name, time: "now" });
+      if (d.disk_usage > 85) {
+        result.push({ id: `${d.id}-disk`, severity: "warning", message: `${d.name} disk at ${d.disk_usage}%`, device: d.name, time: "now" });
+      }
+      if (d.status === "online") {
+        result.push({ id: `${d.id}-ok`, severity: "info", message: `${d.name} operating normally`, device: d.name, time: "now" });
       }
     });
     return result.sort((a, b) => {
@@ -44,10 +51,10 @@ export const AlertsFeed = () => {
 
   return (
     <div className="glass-card p-5 animate-slide-in">
-      <h3 className="text-sm font-semibold text-foreground mb-4">Alertes actives</h3>
+      <h3 className="text-sm font-semibold text-foreground mb-4">Active Alerts</h3>
       <div className="space-y-3 max-h-[320px] overflow-y-auto pr-1">
         {alerts.length === 0 && (
-          <p className="text-sm text-muted-foreground text-center py-4">Aucune alerte</p>
+          <p className="text-sm text-muted-foreground text-center py-4">No alerts</p>
         )}
         {alerts.map((a) => {
           const cfg = severityConfig[a.severity];

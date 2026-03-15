@@ -17,21 +17,17 @@ export type Database = {
       monitored_devices: {
         Row: {
           added_by: string | null
-          bandwidth: number | null
-          category: string
           cpu_usage: number | null
           created_at: string
           disk_usage: number | null
           id: string
           ip_address: string
           last_seen: string | null
-          latency: number | null
           location: string | null
           mac_address: string | null
           memory_usage: number | null
           name: string
           notes: string | null
-          saturation: boolean | null
           status: string
           type: string
           updated_at: string
@@ -39,21 +35,17 @@ export type Database = {
         }
         Insert: {
           added_by?: string | null
-          bandwidth?: number | null
-          category?: string
           cpu_usage?: number | null
           created_at?: string
           disk_usage?: number | null
           id?: string
           ip_address: string
           last_seen?: string | null
-          latency?: number | null
           location?: string | null
           mac_address?: string | null
           memory_usage?: number | null
           name: string
           notes?: string | null
-          saturation?: boolean | null
           status?: string
           type?: string
           updated_at?: string
@@ -61,21 +53,17 @@ export type Database = {
         }
         Update: {
           added_by?: string | null
-          bandwidth?: number | null
-          category?: string
           cpu_usage?: number | null
           created_at?: string
           disk_usage?: number | null
           id?: string
           ip_address?: string
           last_seen?: string | null
-          latency?: number | null
           location?: string | null
           mac_address?: string | null
           memory_usage?: number | null
           name?: string
           notes?: string | null
-          saturation?: boolean | null
           status?: string
           type?: string
           updated_at?: string

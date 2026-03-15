@@ -29,7 +29,7 @@ Deno.serve(async (req) => {
     const results = [];
 
     for (const device of devices) {
-      const { ip_address, status, cpu_usage, memory_usage, disk_usage, uptime, bandwidth, latency, saturation } = device;
+      const { ip_address, status, cpu_usage, memory_usage, disk_usage, uptime } = device;
 
       if (!ip_address) continue;
 
@@ -43,9 +43,6 @@ Deno.serve(async (req) => {
       if (memory_usage !== undefined) updateData.memory_usage = memory_usage;
       if (disk_usage !== undefined) updateData.disk_usage = disk_usage;
       if (uptime !== undefined) updateData.uptime = uptime;
-      if (bandwidth !== undefined) updateData.bandwidth = bandwidth;
-      if (latency !== undefined) updateData.latency = latency;
-      if (saturation !== undefined) updateData.saturation = saturation;
 
       const { error } = await supabase
         .from("monitored_devices")
